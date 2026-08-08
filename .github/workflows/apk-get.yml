@@ -1,0 +1,38 @@
+name: Latest APK Scraper
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Runs daily at midnight UTC
+  workflow_dispatch: # Allows manual triggering from the Actions tab
+
+jobs:
+  scrape-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to create a GitHub Release
+
+    steps:
+      - name: Download latest APK from APKMirror
+        uses: Yakov5776/gh-apkmirror-dl@v1.3
+        with:
+          org: 'google-inc'          # Replace with the organization name on APKMirror
+          repo: 'youtube'            # Replace with the app repository name
+          bundle: false              # Set to true if you need the app bundle (.apkm)
+          filename: 'scraped-app.apk'
+          overwrite: true
+
+      - name: Generate Release Tag
+        id: vars
+        run: echo "date=$(date +'%Y.%m.%d-%H%M')" >> $GITHUB_OUTPUT
+
+      - name: Upload to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.vars.outputs.date }}
+          name: Latest APK Scrape - ${{ steps.vars.outputs.date }}
+          files: scraped-app.apk
+          body: |
+            Automated scrape of the latest APK from APKMirror.
+            **Source**: APKMirror
+          draft: false
+          prerelease: false
