@@ -15,8 +15,8 @@ jobs:
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
-        #with:
-        #  node-version: '24'
+        with:
+          node-version: '20'
 
       - name: Install apkmirror-downloader
         run: npm install -g apkmirror-downloader
@@ -24,7 +24,7 @@ jobs:
       - name: Inject Versions into Filenames
         run: |
           # Parses apps.json, replaces '{0}' with the version, and creates the outFile parameter required by the CLI
-          jq '.apps |= map(.outFile = (.filename_template | split("{0}") | join(.version)) | del(.filename_template))' apps.json > run.json
+          jq '.apps |= map(. as $app | .outFile = ($app.filename_template | split("{0}") | join($app.version)) | del(.filename_template))' apps.json > run.json
           
           echo "[INFO] Generated Configuration:"
           cat run.json
