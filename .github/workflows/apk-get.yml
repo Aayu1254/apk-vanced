@@ -30,7 +30,8 @@ jobs:
           cat run.json
 
       - name: Download APKs sequentially
-        run: apkmd run.json
+        # $(which apkmd) finds the exact path of the installed file, and 'node' forces it to run as JavaScript
+        run: node $(which apkmd) run.json
 
       - name: Publish Rolling Release
         env:
