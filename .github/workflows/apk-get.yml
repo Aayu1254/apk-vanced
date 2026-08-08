@@ -1,38 +1,45 @@
-name: Latest APK Scraper
+name: Latest APK Scraper (Rolling Release)
 
 on:
-  schedule:
-    - cron: '0 0 * * *' # Runs daily at midnight UTC
-  workflow_dispatch: # Allows manual triggering from the Actions tab
+  workflow_dispatch:
 
 jobs:
   scrape-and-release:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Required to create a GitHub Release
-
+      contents: write # Required for creating GitHub Releases
+      
     steps:
-      - name: Download latest APK from APKMirror
-        uses: Yakov5776/gh-apkmirror-dl@v1.3
-        with:
-          org: 'google-inc'          # Replace with the organization name on APKMirror
-          repo: 'youtube'            # Replace with the app repository name
-          bundle: false              # Set to true if you need the app bundle (.apkm)
-          filename: 'scraped-app.apk'
-          overwrite: true
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - name: Generate Release Tag
-        id: vars
-        run: echo "date=$(date +'%Y.%m.%d-%H%M')" >> $GITHUB_OUTPUT
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        #with:
+        #  node-version: '24'
 
-      - name: Upload to GitHub Releases
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.vars.outputs.date }}
-          name: Latest APK Scrape - ${{ steps.vars.outputs.date }}
-          files: scraped-app.apk
-          body: |
-            Automated scrape of the latest APK from APKMirror.
-            **Source**: APKMirror
-          draft: false
-          prerelease: false
+      - name: Install apkmirror-downloader
+        run: npm install -g apkmirror-downloader
+
+      - name: Inject Versions into Filenames
+        run: |
+          # Parses apps.json, replaces '{0}' with the version, and creates the outFile parameter required by the CLI
+          jq '.apps |= map(.outFile = (.filename_template | split("{0}") | join(.version)) | del(.filename_template))' apps.json > run.json
+          
+          echo "[INFO] Generated Configuration:"
+          cat run.json
+
+      - name: Download APKs sequentially
+        run: apkmd run.json
+
+      - name: Publish Rolling Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          # Move files from the "downloads" directory to the root where the script expects them
+          mv downloads/* . 
+          
+          # Execute your custom release script
+          chmod +x update_and_archive.sh
+          ./update_and_archive.sh
