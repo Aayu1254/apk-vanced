@@ -35,7 +35,7 @@
     },
     {
       "org": "proton-technologies-ag",
-      "repo": "protonvpn-secure-and-free-vpn",
+      "repo": "proton-vpn-fast-secure-vpn",
       "type": "apk",
       "version": "5.19.43.0",
       "filename_template": "ch.protonvpn.android-latest-all.apk"
