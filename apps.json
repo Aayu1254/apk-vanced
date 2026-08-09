@@ -7,9 +7,8 @@
       "org": "google-inc",
       "repo": "youtube",
       "version": "21.28.205",
-      "arch": "arm64-v8a",
       "type": "apk",
-      "filename_template": "com.google.android.apps.youtube-{0}-arm64-v8a.apk"
+      "filename_template": "com.google.android.apps.youtube-{0}-all.apk"
     },
     {
       "org": "google-inc",
@@ -31,6 +30,7 @@
       "repo": "reddit",
       "version": "2026.29.0",
       "type": "bundle",
+      "dpi": "120-640dpi",
       "filename_template": "com.reddit.frontpage-{0}-all.apkm"
     },
     {
