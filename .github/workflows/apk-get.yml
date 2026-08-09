@@ -13,13 +13,10 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install apkmirror-downloader
-        run: npm install -g apkmirror-downloader
+      - name: Download apkmd binary
+        run: |
+          curl -sSL https://github.com/tanishqmanuja/apkmirror-downloader/releases/latest/download/apkmd -o /usr/local/bin/apkmd
+          chmod +x /usr/local/bin/apkmd
 
       - name: Inject Versions into Filenames
         run: |
@@ -30,8 +27,7 @@ jobs:
           cat run.json
 
       - name: Download APKs sequentially
-        # $(which apkmd) finds the exact path of the installed file, and 'node' forces it to run as JavaScript
-        run: node $(which apkmd) run.json
+        run: apkmd run.json
 
       - name: Publish Rolling Release
         env:
