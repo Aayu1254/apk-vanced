@@ -8,7 +8,7 @@
       "repo": "youtube",
       "version": "21.28.205",
       "type": "apk",
-      "filename_template": "com.google.android.apps.youtube-{0}-all.apk"
+      "filename_template": "com.google.android.apps.youtube-latest-all.apk"
     },
     {
       "org": "google-inc",
@@ -16,7 +16,7 @@
       "version": "9.30.52",
       "arch": "arm64-v8a",
       "type": "apk",
-      "filename_template": "com.google.android.apps.youtube.music-{0}-arm64-v8a.apk"
+      "filename_template": "com.google.android.apps.youtube.music-latest-arm64-v8a.apk"
     },
     {
       "org": "google-inc",
@@ -31,13 +31,14 @@
       "version": "2026.29.0",
       "type": "bundle",
       "dpi": "120-640dpi",
-      "filename_template": "com.reddit.frontpage-{0}-all.apkm"
+      "filename_template": "com.reddit.frontpage-latest-all.apkm"
     },
     {
       "org": "proton-technologies-ag",
       "repo": "proton-vpn-fast-secure-vpn",
-      "type": "apk",
       "version": "5.19.16.0",
+      "type": "bundle",
+      "dpi": "120-640dpi",
       "filename_template": "ch.protonvpn.android-latest-all.apk"
     }
   ]
