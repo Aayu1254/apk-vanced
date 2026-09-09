@@ -41,5 +41,13 @@
       "dpi": "120-640dpi",
       "filename_template": "ch.protonvpn.android-latest-all.apkm"
     }
+    {
+      "org": "arlosoft",
+      "repo": "macrodroid-device-automation-2",
+      "arch": "arm64-v8a",
+      "version": "5.65.9",
+      "type": "apk",
+      "filename_template": "com.arlosoft.macrodroid-latest-all.apk"
+    }
   ]
 }
