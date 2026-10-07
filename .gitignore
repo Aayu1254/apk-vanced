@@ -1,3 +1,7 @@
 apkmd.exe
 apps1.json
 /downloads
+__pycache__/
+*.py[cod]
+gplay_tool/
+run.json

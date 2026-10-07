@@ -2,6 +2,15 @@ name: Latest APK Scraper (Rolling Release)
 
 on:
   workflow_dispatch:
+    inputs:
+      config_file:
+        description: 'Configuration file to use'
+        required: true
+        default: 'apps.json'
+        type: choice
+        options:
+          - apps.json
+          - apps1.json
 
 jobs:
   scrape-and-release:
@@ -13,21 +22,39 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Download apkmd binary
+      - name: Set up Java & Signing Tools
         run: |
-          curl -sSL https://github.com/tanishqmanuja/apkmirror-downloader/releases/latest/download/apkmd -o /usr/local/bin/apkmd
-          chmod +x /usr/local/bin/apkmd
+          sudo apt-get update
+          sudo apt-get install -y openjdk-17-jre-headless apksigner
 
-      - name: Inject Versions into Filenames
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: '**/requirements.txt'
+
+      - name: Create Android Debug Keystore
         run: |
-          # Parses apps.json, replaces '{0}' with the version, and creates the outFile parameter required by the CLI
-          jq '.apps |= map(. as $app | .outFile = ($app.filename_template | split("{0}") | join($app.version)) | del(.filename_template))' apps.json > run.json
-          
-          echo "[INFO] Generated Configuration:"
-          cat run.json
+          mkdir -p ~/.android
+          keytool -genkey -v -keystore ~/.android/debug.keystore \
+            -storepass android -alias androiddebugkey -keypass android \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US" 2>/dev/null || true
 
-      - name: Download APKs sequentially
-        run: apkmd run.json
+      - name: Clone GPlay Downloader Tool
+        run: |
+          git clone --depth 1 https://github.com/alltechdev/gplay-apk-downloader.git gplay_tool
+          pip install -r gplay_tool/requirements.txt
+
+      - name: Download & Package Apps
+        env:
+          GPLAY_EMAIL: ${{ secrets.GPLAY_EMAIL }}
+          GPLAY_AAS_TOKEN: ${{ secrets.GPLAY_AAS_TOKEN }}
+          GPLAY_OAUTH_TOKEN: ${{ secrets.GPLAY_OAUTH_TOKEN }}
+          DISPENSER_URL: ${{ secrets.DISPENSER_URL }}
+        run: |
+          python download_apps.py --config "${{ inputs.config_file || 'apps.json' }}" --tool-dir ./gplay_tool
 
       - name: Publish Rolling Release
         env:
@@ -35,8 +62,10 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           # Move files from the "downloads" directory to the root where the script expects them
-          mv downloads/* . 
+          if [ -d "downloads" ] && [ "$(ls -A downloads)" ]; then
+            mv downloads/* .
+          fi
           
-          # Execute your custom release script
+          # Execute release script
           chmod +x update_and_archive.sh
           ./update_and_archive.sh
