@@ -7,12 +7,14 @@
       "package": "com.google.android.youtube",
       "arch": "arm64",
       "format": "apkm",
+      "version": "1561301413",
       "output_name": "com.google.android.apps.youtube-latest-arm64.apkm"
     },
     {
       "package": "com.google.android.apps.youtube.music",
       "arch": "arm64",
       "format": "apkm",
+      "version": "94051240",
       "output_name": "com.google.android.apps.youtube.music-latest-arm64.apkm"
     },
     {
@@ -25,19 +27,15 @@
       "package": "com.reddit.frontpage",
       "arch": "arm64",
       "format": "apkm",
+      "version": "2640091",
       "output_name": "com.reddit.frontpage-latest-arm64.apkm"
     },
     {
       "package": "ch.protonvpn.android",
       "arch": "arm64",
       "format": "apkm",
+      "version": "605197200",
       "output_name": "ch.protonvpn.android-latest-arm64.apkm"
-    },
-    {
-      "package": "com.arlosoft.macrodroid",
-      "arch": "arm64",
-      "format": "apk",
-      "output_name": "com.arlosoft.macrodroid-latest-all.apk"
     }
   ]
 }
