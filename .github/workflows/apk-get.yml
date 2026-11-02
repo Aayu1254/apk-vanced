@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       urls:
-        description: 'Direct download URLs (one per line, optional custom name after space: URL [filename])'
+        description: 'Direct download URLs (separated by space, comma, semicolon, or newline. Optional name: URL [filename])'
         required: true
         type: string
 
@@ -22,26 +22,47 @@ jobs:
         env:
           URLS: ${{ inputs.urls }}
         run: |
-          while IFS= read -r line || [ -n "$line" ]; do
-            line="$(echo "$line" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
-            [ -z "$line" ] && continue
-            [[ "$line" =~ ^# ]] && continue
+          current_url=""
+          current_name=""
 
-            read -r url custom_name <<< "$line"
-            echo "---------------------------------------------------"
-            echo "[INFO] Processing: $url"
-
-            if [ -n "$custom_name" ]; then
-              echo "  [+] Output name: $custom_name"
-              curl -fSL -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" \
-                --retry 3 --retry-delay 2 \
-                -o "$custom_name" "$url"
-            else
-              curl -fSL -OJ -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" \
-                --retry 3 --retry-delay 2 \
-                "$url"
+          download_item() {
+            if [ -n "$current_url" ]; then
+              echo "---------------------------------------------------"
+              echo "[INFO] Downloading: $current_url"
+              if [ -n "$current_name" ]; then
+                echo "  [+] Custom filename: $current_name"
+                curl -fSL -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" \
+                  --retry 3 --retry-delay 2 \
+                  -o "$current_name" "$current_url"
+              else
+                curl -fSL -OJ -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" \
+                  --retry 3 --retry-delay 2 \
+                  "$current_url"
+              fi
+              current_url=""
+              current_name=""
             fi
-          done <<< "$URLS"
+          }
+
+          for raw_token in $URLS; do
+            # Strip leading/trailing commas and semicolons used as separators
+            token="$(echo "$raw_token" | sed -e 's/^[,;]*//' -e 's/[,;]*$//')"
+            [ -z "$token" ] && continue
+            [[ "$token" =~ ^# ]] && continue
+
+            case "$token" in
+              http://*|https://*)
+                download_item
+                current_url="$token"
+                ;;
+              *)
+                if [ -n "$current_url" ] && [ -z "$current_name" ]; then
+                  current_name="$token"
+                fi
+                ;;
+            esac
+          done
+          download_item
 
       - name: Publish Rolling Release
         env:
