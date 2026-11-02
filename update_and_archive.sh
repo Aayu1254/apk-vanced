@@ -5,6 +5,11 @@ echo "==================================================="
 echo "[START] Starting rolling release automation..."
 echo "==================================================="
 
+# Step 0: Auto-rename packages based on apps.json mapping rules if available
+if [ -f "rename_apps.py" ] && command -v python3 &>/dev/null; then
+    python3 rename_apps.py
+fi
+
 # Pre-check: Ensure at least one application package file exists
 shopt -s nullglob
 files=(*.apk *.apkm *.xapk *.apks *.zip)

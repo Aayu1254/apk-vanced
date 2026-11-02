@@ -64,6 +64,12 @@ jobs:
           done
           download_item
 
+      - name: Rename Files Based on apps.json
+        run: |
+          if [ -f "rename_apps.py" ]; then
+            python3 rename_apps.py
+          fi
+
       - name: Append to Latest Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

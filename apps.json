@@ -1,0 +1,28 @@
+{
+  "apps": [
+    {
+      "package": "android.youtube",
+      "output_name": "com.google.android.youtube-latest-arm64-v8a.apkm"
+    },
+    {
+      "package": "youtube.music",
+      "output_name": "com.google.android.apps.youtube.music-latest-arm64-v8a.apkm"
+    },
+    {
+      "package": "apps.photos",
+      "output_name": "com.google.android.apps.photos-latest-arm64-v8a.apkm"
+    },
+    {
+      "package": "com.reddit",
+      "output_name": "com.reddit.frontpage-latest-arm64-v8a.apkm"
+    },
+    {
+      "package": "ch.protonvpn",
+      "output_name": "ch.protonvpn.android-latest-arm64-v8a.apkm"
+    },
+    {
+      "package": "macrodroid",
+      "output_name": "com.arlosoft.macrodroid-latest-all.apk"
+    }
+  ]
+}
