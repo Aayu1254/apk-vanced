@@ -1,69 +1,52 @@
-name: Latest APK Scraper (Rolling Release)
+name: Direct Download & Rolling Release
 
 on:
   workflow_dispatch:
     inputs:
-      config_file:
-        description: 'Configuration file to use'
+      urls:
+        description: 'Direct download URLs (one per line, optional custom name after space: URL [filename])'
         required: true
-        default: 'apps.json'
-        type: choice
-        options:
-          - apps.json
-          - apps1.json
+        type: string
 
 jobs:
-  scrape-and-release:
+  download-and-release:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Required for creating GitHub Releases
-      
+      contents: write
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Java & Signing Tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y openjdk-17-jre-headless apksigner
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Create Android Debug Keystore
-        run: |
-          mkdir -p ~/.android
-          keytool -genkey -v -keystore ~/.android/debug.keystore \
-            -storepass android -alias androiddebugkey -keypass android \
-            -keyalg RSA -keysize 2048 -validity 10000 \
-            -dname "CN=Android Debug,O=Android,C=US" 2>/dev/null || true
-
-      - name: Clone GPlay Downloader Tool
-        run: |
-          git clone --depth 1 https://github.com/alltechdev/gplay-apk-downloader.git gplay_tool
-          pip install -r gplay_tool/requirements.txt
-
-      - name: Download & Package Apps
+      - name: Download Files from URLs
         env:
-          GPLAY_EMAIL: ${{ secrets.GPLAY_EMAIL }}
-          GPLAY_AAS_TOKEN: ${{ secrets.GPLAY_AAS_TOKEN }}
-          GPLAY_OAUTH_TOKEN: ${{ secrets.GPLAY_OAUTH_TOKEN }}
-          DISPENSER_URL: ${{ secrets.DISPENSER_URL }}
+          URLS: ${{ inputs.urls }}
         run: |
-          python download_apps.py --config "${{ inputs.config_file || 'apps.json' }}" --tool-dir ./gplay_tool
+          while IFS= read -r line || [ -n "$line" ]; do
+            line="$(echo "$line" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+            [ -z "$line" ] && continue
+            [[ "$line" =~ ^# ]] && continue
+
+            read -r url custom_name <<< "$line"
+            echo "---------------------------------------------------"
+            echo "[INFO] Processing: $url"
+
+            if [ -n "$custom_name" ]; then
+              echo "  [+] Output name: $custom_name"
+              curl -fSL -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" \
+                --retry 3 --retry-delay 2 \
+                -o "$custom_name" "$url"
+            else
+              curl -fSL -OJ -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" \
+                --retry 3 --retry-delay 2 \
+                "$url"
+            fi
+          done <<< "$URLS"
 
       - name: Publish Rolling Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
         run: |
-          # Move files from the "downloads" directory to the root where the script expects them
-          if [ -d "downloads" ] && [ "$(ls -A downloads)" ]; then
-            mv downloads/* .
-          fi
-          
-          # Execute release script
           chmod +x update_and_archive.sh
           ./update_and_archive.sh

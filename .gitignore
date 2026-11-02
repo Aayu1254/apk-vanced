@@ -1,7 +1,7 @@
-apkmd.exe
-apps1.json
-/downloads
+/downloads/
 __pycache__/
-*.py[cod]
-gplay_tool/
-run.json
+*.apk
+*.apkm
+*.xapk
+*.apks
+*.zip
